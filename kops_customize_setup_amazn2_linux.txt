@@ -1,0 +1,68 @@
+Add in .bashrc:-
+----------------
+#vim .bashrc
+#export PATH=$PATH:/usr/local/bin/
+#source .bashrc
+
+Script or Manual:-
+------------------
+
+#! /bin/bash
+aws configure
+curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+wget https://github.com/kubernetes/kops/releases/download/v1.25.0/kops-linux-amd64
+chmod +x kops-linux-amd64 kubectl
+mv kubectl /usr/local/bin/kubectl
+mv kops-linux-amd64 /usr/local/bin/kops
+
+aws s3api create-bucket --bucket myktiwaribuck.k8s.local --region us-east-1
+
+aws s3api put-bucket-versioning --bucket myktiwaribuck.k8s.local --region us-east-1 --versioning-configuration Status=Enabled
+
+export KOPS_STATE_STORE=s3://myktiwaribuck.k8s.local
+
+kops create cluster --name mykt.k8s.local --zones us-east-1a --master-count=1 --master-size t3a.small --node-count=2 --node-size t3a.micro --image ami-020cba7c55df1f615 --override "instanceGroupDefaults.spec.rootVolumeSize=10"
+
+kops update cluster --name mykt.k8s.local --yes --admin
+
+
+Customize the Cluster Configuration:-
+-------------------------------------
+Note: By default Master used 64 GB ebs & Node used 20 GB ebs.
+Can modify the ebs volume via below configuration.
+
+kops edit ig master-us-east-1a --name mykt.k8s.local
+
+kops edit ig nodes-us-east-1a --name mykt.k8s.local
+
+(Run for Master and Node)
+---
+apiVersion: kops.k8s.io/v1alpha2
+kind: InstanceGroup
+metadata:
+  creationTimestamp: "2025-08-21T07:15:52Z"
+  generation: 1
+  labels:
+    kops.k8s.io/cluster: mykt.k8s.local
+  name: master-us-east-1a
+spec:
+  image: ami-020cba7c55df1f615
+  instanceMetadata:
+    httpPutResponseHopLimit: 3
+    httpTokens: required
+  machineType: t3a.small
+  maxSize: 1
+  minSize: 1
+  role: Master
+  rootVolumeSize: 10    // Add this line for custom ebs size
+  subnets:
+  - us-east-1a
+  
+  
+Few Commands:-
+--------------
+
+kops get cluster   // get cluster information
+kops delete cluster mykt.k8s.local --yes   // delete the specified cluster 
+kops update cluster --name mykt.k8s.local --yes  // update the cluster with specified with settings
+kops rolling-update cluster --name mykt.k8s.local --yes   // recreate the instances with new configuration as define
