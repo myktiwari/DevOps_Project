@@ -4,7 +4,7 @@ Add in .bashrc:-
 #export PATH=$PATH:/usr/local/bin/
 #source .bashrc
 
-Script or Manual:-
+Manual:-
 ------------------
 
 #! /bin/bash
@@ -14,21 +14,35 @@ wget https://github.com/kubernetes/kops/releases/download/v1.25.0/kops-linux-amd
 chmod +x kops-linux-amd64 kubectl
 mv kubectl /usr/local/bin/kubectl
 mv kops-linux-amd64 /usr/local/bin/kops
-
 aws s3api create-bucket --bucket myktiwaribuck.k8s.local --region us-east-1
-
 aws s3api put-bucket-versioning --bucket myktiwaribuck.k8s.local --region us-east-1 --versioning-configuration Status=Enabled
-
 export KOPS_STATE_STORE=s3://myktiwaribuck.k8s.local
-
-kops create cluster --name mykt.k8s.local --zones us-east-1a --master-count=1 --master-size t3a.small --node-count=2 --node-size t3a.micro --image ami-020cba7c55df1f615 --override "instanceGroupDefaults.spec.rootVolumeSize=10"
-
+kops create cluster --name mykt.k8s.local --zones us-east-1a --master-count=1 --master-size t3a.small --node-count=2 --node-size t3a.micro --image ami-020cba7c55df1f615
 kops update cluster --name mykt.k8s.local --yes --admin
 
+Script:-
+--------------
+
+#! /bin/bash
+export AWS_ACCESS_KEY_ID=ACCIAZXXXXXXXXXXX
+export AWS_SECRET_ACCESS_KEY=aREnCC/Ryyyyyyyyyyfffffffsdffgggff
+export AWS_DEFAULT_REGION=us-east-1
+curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+wget https://github.com/kubernetes/kops/releases/download/v1.25.0/kops-linux-amd64
+chmod +x kops-linux-amd64 kubectl
+mv kubectl /usr/local/bin/kubectl
+mv kops-linux-amd64 /usr/local/bin/kops
+aws s3api create-bucket --bucket myktiwaribuck.k8s.local --region us-east-1
+aws s3api put-bucket-versioning --bucket myktiwaribuck.k8s.local --region us-east-1 --versioning-configuration Status=Enabled
+export KOPS_STATE_STORE=s3://myktiwaribuck.k8s.local
+kops create cluster --name mykt.k8s.local --zones us-east-1a --master-count=1 --master-size t3a.small --node-count=2 --node-size t3a.micro --image ami-020cba7c55df1f615
+#kops set ig master-us-east-1a rootVolumeSize=10 --name mykt.k8s.local         // This command now works
+#kops set ig nodes-us-east-1a rootVolumeSize=10 --name mykt.k8s.local          // This command now works
+kops update cluster --name mykt.k8s.local --yes --admin
 
 Customize the Cluster Configuration:-
 -------------------------------------
-Note: By default Master used 64 GB ebs & Node used 20 GB ebs.
+Note: By default Master used 64 GB EBS Size & Worker Node used 128 GB EBS.
 Can modify the ebs volume via below configuration.
 
 kops edit ig master-us-east-1a --name mykt.k8s.local
@@ -66,3 +80,4 @@ kops get cluster   // get cluster information
 kops delete cluster mykt.k8s.local --yes   // delete the specified cluster 
 kops update cluster --name mykt.k8s.local --yes  // update the cluster with specified with settings
 kops rolling-update cluster --name mykt.k8s.local --yes   // recreate the instances with new configuration as define
+
