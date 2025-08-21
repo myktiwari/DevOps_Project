@@ -85,5 +85,37 @@ Few Commands:-
 
 kops get cluster   // get cluster information
 kops delete cluster mykt.k8s.local --yes   // delete the specified cluster 
+kops edit ig master-us-east-1a --name mykt.k8s.local   // edit master configuration
+kops edit ig nodes-us-east-1a --name mykt.k8s.local    // edit nodes configuration
 kops update cluster --name mykt.k8s.local --yes  // update the cluster with specified with settings
 kops rolling-update cluster --name mykt.k8s.local --yes   // recreate the instances with new configuration as define
+
+Error Troubleshooting:-
+----------------------
+Sometimes after do some modification like EBS Size or Instance types in IG of Master or Nodes, when run the rolling-update command it gives below error:
+
+"Unable to reach the kubernetes API.
+Use --cloudonly to do a rolling-update without confirming progress with the k8s API"
+
+How to solve this issue:
+
+export KOPS_STATE_STORE=s3://myktiwaribuck.k8s.local
+kops export kubecfg --name mykt.k8s.local
+kops validate cluster --wait 10m --name mykt.k8s.local   // sometines it gives unexpected error
+
+kops rolling-update cluster --name mykt.k8s.local --cloudonly --yes   // run the rolling update now, it will work
+
+Output:
+
+NAME                    STATUS          NEEDUPDATE      READY   MIN     TARGET  MAX
+master-us-east-1a       NeedsUpdate     1               0       1       1       1
+nodes-us-east-1a        Ready           0               2       2       2       2
+W0821 10:24:39.778537    4664 instancegroups.go:470] Not validating cluster as cloudonly flag is set.
+W0821 10:24:39.778719    4664 instancegroups.go:399] Not draining cluster nodes as 'cloudonly' flag is set.
+I0821 10:24:39.778748    4664 instancegroups.go:595] Stopping instance "i-0430a620c13926c5b", in group "master-us-east-1a.masters.mykt.k8s.local" (this may take a while).
+I0821 10:24:40.121635    4664 instancegroups.go:438] waiting for 15s after terminating instance
+W0821 10:24:55.127116    4664 instancegroups.go:470] Not validating cluster as cloudonly flag is set.
+I0821 10:24:55.127154    4664 rollingupdate.go:210] Rolling update completed for cluster "mykt.k8s.local"!
+
+
+
