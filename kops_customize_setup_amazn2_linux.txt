@@ -87,6 +87,3 @@ kops get cluster   // get cluster information
 kops delete cluster mykt.k8s.local --yes   // delete the specified cluster 
 kops update cluster --name mykt.k8s.local --yes  // update the cluster with specified with settings
 kops rolling-update cluster --name mykt.k8s.local --yes   // recreate the instances with new configuration as define
-
-
-
