@@ -43,13 +43,12 @@ kops update cluster --name mykt.k8s.local --yes --admin
 Customize the Cluster Configuration:-
 -------------------------------------
 Note: By default Master used 64 GB EBS Size & Worker Node used 128 GB EBS.
-Can modify the ebs volume via below configuration.
+Can modify the EBS Size via below configuration.
 
 kops edit ig master-us-east-1a --name mykt.k8s.local
-
 kops edit ig nodes-us-east-1a --name mykt.k8s.local
 
-(Run for Master and Node)
+(Output: Master and Node)
 ---
 apiVersion: kops.k8s.io/v1alpha2
 kind: InstanceGroup
@@ -80,4 +79,5 @@ kops get cluster   // get cluster information
 kops delete cluster mykt.k8s.local --yes   // delete the specified cluster 
 kops update cluster --name mykt.k8s.local --yes  // update the cluster with specified with settings
 kops rolling-update cluster --name mykt.k8s.local --yes   // recreate the instances with new configuration as define
+
 
