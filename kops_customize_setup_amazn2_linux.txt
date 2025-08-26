@@ -10,15 +10,18 @@ Manual:-
 #! /bin/bash
 aws configure
 curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-wget https://github.com/kubernetes/kops/releases/download/v1.25.0/kops-linux-amd64
+wget https://github.com/kubernetes/kops/releases/download/v1.33.0/kops-linux-amd64
 chmod +x kops-linux-amd64 kubectl
 mv kubectl /usr/local/bin/kubectl
 mv kops-linux-amd64 /usr/local/bin/kops
-aws s3api create-bucket --bucket myktiwaribuck.k8s.local --region us-east-1
-aws s3api put-bucket-versioning --bucket myktiwaribuck.k8s.local --region us-east-1 --versioning-configuration Status=Enabled
-export KOPS_STATE_STORE=s3://myktiwaribuck.k8s.local
-kops create cluster --name mykt.k8s.local --zones us-east-1a --master-count=1 --master-size t3a.small --node-count=2 --node-size t3a.micro --image ami-020cba7c55df1f615
+aws s3api create-bucket --bucket mykt89.k8s.local --region us-east-1
+aws s3api put-bucket-versioning --bucket mykt89.k8s.local --region us-east-1 --versioning-configuration Status=Enabled
+export KOPS_STATE_STORE=s3://mykt89.k8s.local
+kops create cluster --name mykt.k8s.local --zones ap-south-1a --control-plane-image ami-0f918f7e67a3323f0 --control-plane-count=1 --control-plane-size t2.large --image ami-0f918f7e67a3323f0 --node-count=2 --node-size t2.medium
 kops update cluster --name mykt.k8s.local --yes --admin
+export KOPS_STATE_STORE=s3://mykt89.k8s.local
+kops validate cluster --wait 10m --name mykt.k8s.local
+
 
 Script:-
 --------------
@@ -29,23 +32,17 @@ export AWS_SECRET_ACCESS_KEY=aREnCC/R+khSext0caj9VHHGFHJKUUYYYYYYYYY
 export AWS_DEFAULT_REGION=us-east-1
 
 curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-wget https://github.com/kubernetes/kops/releases/download/v1.25.0/kops-linux-amd64
+wget https://github.com/kubernetes/kops/releases/download/v1.33.0/kops-linux-amd64
 chmod +x kops-linux-amd64 kubectl
 mv kubectl /usr/local/bin/kubectl
 mv kops-linux-amd64 /usr/local/bin/kops
-aws s3api create-bucket --bucket myktiwaribuck.k8s.local --region us-east-1
-aws s3api put-bucket-versioning --bucket myktiwaribuck.k8s.local --region us-east-1 --versioning-configuration Status=Enabled
-export KOPS_STATE_STORE=s3://myktiwaribuck.k8s.local
-kops create cluster --name mykt.k8s.local --zones us-east-1a --master-count=1 --master-size t3a.small --node-count=2 --node-size t3a.micro --image ami-020cba7c55df1f615
-# Master IG
-kops get ig master-us-east-1a --name mykt.k8s.local -o yaml \
-  | sed 's/machineType: t3a.small/machineType: t3a.small\n  rootVolumeSize: 10/' \
-  | kops replace -f -
-# Node IG
-kops get ig nodes-us-east-1a --name mykt.k8s.local -o yaml \
-  | sed 's/machineType: t3a.micro/machineType: t3a.micro\n  rootVolumeSize: 10/' \
-  | kops replace -f -
+aws s3api create-bucket --bucket mykt89.k8s.local --region us-east-1
+aws s3api put-bucket-versioning --bucket mykt89.k8s.local --region us-east-1 --versioning-configuration Status=Enabled
+export KOPS_STATE_STORE=s3://mykt89.k8s.local
+kops create cluster --name mykt.k8s.local --zones ap-south-1a --control-plane-image ami-0f918f7e67a3323f0 --control-plane-count=1 --control-plane-size t2.large --image ami-0f918f7e67a3323f0 --node-count=2 --node-size t2.medium
 kops update cluster --name mykt.k8s.local --yes --admin
+export KOPS_STATE_STORE=s3://mykt89.k8s.local
+kops validate cluster --wait 10m --name mykt.k8s.local
 
 
 Customize the Cluster Configuration:-
@@ -53,8 +50,8 @@ Customize the Cluster Configuration:-
 Note: By default Master used 64 GB EBS Size & Worker Node used 128 GB EBS.
 Can modify the EBS Size via below configuration.
 
-kops edit ig master-us-east-1a --name mykt.k8s.local
-kops edit ig nodes-us-east-1a --name mykt.k8s.local
+kops edit ig --name=mykt.k8s.local control-plane-ap-south-1a
+kops edit ig --name=mykt.k8s.local nodes-ap-south-1a
 
 (Output: Master and Node)
 ---
@@ -85,8 +82,8 @@ Few Commands:-
 
 kops get cluster   // get cluster information
 kops delete cluster mykt.k8s.local --yes   // delete the specified cluster 
-kops edit ig master-us-east-1a --name mykt.k8s.local   // edit master configuration
-kops edit ig nodes-us-east-1a --name mykt.k8s.local    // edit nodes configuration
+kops edit ig --name=mykt.k8s.local nodes-ap-south-1a   // edit master configuration
+kops edit ig --name=mykt.k8s.local control-plane-ap-south-1a    // edit nodes configuration
 kops update cluster --name mykt.k8s.local --yes  // update the cluster with specified with settings
 kops rolling-update cluster --name mykt.k8s.local --yes   // recreate the instances with new configuration as define
 
@@ -116,6 +113,7 @@ I0821 10:24:39.778748    4664 instancegroups.go:595] Stopping instance "i-0430a6
 I0821 10:24:40.121635    4664 instancegroups.go:438] waiting for 15s after terminating instance
 W0821 10:24:55.127116    4664 instancegroups.go:470] Not validating cluster as cloudonly flag is set.
 I0821 10:24:55.127154    4664 rollingupdate.go:210] Rolling update completed for cluster "mykt.k8s.local"!
+
 
 
 
