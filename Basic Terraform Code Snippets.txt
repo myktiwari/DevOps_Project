@@ -138,6 +138,11 @@ output "my_output2" {
 value = [aws_instance.Demo.public_ip, aws_instance.Demo.private_ip]       // for multiple output use array
 }
 
+---- In case multiple servers IP required ----
+
+output "public_ips" {
+  value = aws_instance.Demo[*].public_ip
+}
 
 -------------------- TERRAFORM IMPORT --------------------
 
@@ -154,4 +159,5 @@ resource "aws_instance" "my_instance" {
 
 
 terraform import aws_instance.my_instance <manual_created_instance_id>
+
 
