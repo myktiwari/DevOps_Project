@@ -43,10 +43,10 @@ chkconfig docker on
 
 Setup docker swarm:
 -------------------
-docker swarm init (#copy the token and paste on slave servers)	docker node ls (#check the join nodes)
-docker swarm leave (#remove the join nodes)
-docker swarm join-token manager (#check the token)
-docker node rm node_id (#remove working node completely)
+docker swarm init                (#copy the token and paste on slave servers)	docker node ls (#check the join nodes)
+docker swarm leave               (#remove the join nodes)
+docker swarm join-token manager  (#check the token)
+docker node rm node_id           (#remove working node completely)
 
 Give full permission:
 ---------------------
