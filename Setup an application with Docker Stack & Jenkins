@@ -5,7 +5,7 @@ When developer upload the latest code on github: (Jenkins Pipeline)
 •	Pull the code
 •	Create image
 •	Push to docker hub
-•	Deploy the application on multiple containers via Docker stack
+•	create pipiline to Deploy the application on multiple containers via Docker stack
 
 Prerequisites:-
 ---------------
@@ -23,6 +23,7 @@ Project Steps:-
 •	Create Image from Dockerfile
 •	Create docker-compose file for multiple containers setup
 •	Configure the Jenkins server
+•   Setup pipelines to push docker image on Dockerhub
 •	Setup pipelines for application deploy
 ==============================================================
 
@@ -108,7 +109,7 @@ services:
 
 Configure the Jenkins server:
 ------------------------------
-Create Pipeline: (DockerPipeline)
+Create Pipeline: (DockerPipeline) -- Part:1
 
 pipeline {
     agent any
@@ -158,7 +159,8 @@ Manage Jenkins  System  Global properties  Environment variables
 	List of variables  Name: password
 			          Value: <dockerhub_password>
 
-Create Pipeline: (DockerPipeline)
+Create New Pipeline: (DockerDeployPipeline) -- Part:2
+
 pipeline {
     agent any
     stages {
