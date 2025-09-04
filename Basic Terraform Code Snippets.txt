@@ -138,10 +138,39 @@ output "my_output2" {
 value = [aws_instance.Demo.public_ip, aws_instance.Demo.private_ip]       // for multiple output use array
 }
 
----- In case multiple servers IP required ----
+PART-2
+-------
 
-output "public_ips" {
-  value = aws_instance.Demo[*].public_ip
+main.tf
+
+provider "aws" {
+  region = "us-east-1"
+}
+
+resource "aws_instance" "my_instance" {
+    instance_type = var.instance_type
+    ami = var.ami
+    count= var.total_count
+    tags = {
+        Name: "${var.tag_name}-${count.index}"
+    }
+  }
+
+variable "instance_type" {
+  default = "t3a.micro"
+}
+variable "ami" {
+  default = "i-04f5a78fa3dee6ac8"
+}
+variable "total_count" {
+  default = 3
+}
+variable "tag_name" {
+  default = "test-server"
+}
+
+output "my_output" {
+  value = aws_instance.my_instance[*].public_ip      // multiple server Public Ip on single output
 }
 
 -------------------- TERRAFORM IMPORT --------------------
@@ -160,4 +189,64 @@ resource "aws_instance" "my_instance" {
 
 terraform import aws_instance.my_instance <manual_created_instance_id>
 
+---------- TERRAFORM RESOURCE CREATION ------------
+
+vim main.tf 
+
+resource "aws_instance" "my_instance" {
+  ami           = var.ami
+  instance_type = var.instance_type
+  count         = var.total_count
+  tags = {
+    Name = "test_server-${count.index}"     // to print the tag with index for multiple servers
+  }
+}
+
+provider "aws" {
+    region = "us-east-1"
+}
+
+resource "aws_s3_bucket" "my_bucket" {
+  bucket = "myktiwaribucket"
+}
+
+resource "aws_ebs_volume" "my_ebs" {
+  availability_zone = "us-east-1a"
+  size = 10
+  tags = {
+    Name= "new_ebs_volume"
+  }
+}
+
+resource "aws_iam_user" "my_user" {
+  name = "myktiwari"
+}
+
+
+------------------- TERRAFORM TAINT ---------------------
+
+Mark resource for recreation on next apply.
+
+terraform taint aws_instance.my_instance
+terraform apply                          // It will delete the resource and recreate
+
+
+------------- TERRAFORM LIFECYCLE ---------------------
+
+vim main.tf 
+
+provider "aws" {
+    region = "us-east-1"
+}
+
+resource "aws_instance" "my_instance" {
+    ami = "ami-0a232144cf20a27a5"
+    instance_type = "t3a.micro"
+    tags = {
+      Name = "demo"
+    }
+  lifecycle {
+    prevent_destroy = true               // It will deny to delete the instance
+  }
+}
 
