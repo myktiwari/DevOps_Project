@@ -250,3 +250,118 @@ resource "aws_instance" "my_instance" {
   }
 }
 
+------------------ TERAFORM VERSION CONSTRAINTS -------------------
+
+Define to control which version of terraform or provider your configuration use.
+
+main.tf 
+
+terraform {
+  required_providers {
+    random = {
+      source  = "hashicorp/aws"
+      version = "~> 3.6"
+    }
+  }
+}
+
+------------------------ TERRAFORM LOCALS -------------------------
+
+1) It's a blcok used to define values 
+2) Once we define a value we can use it multipple times.
+3) If you change value on local block all the values will be replaced to all block.
+
+vim main.tf 
+
+provider "aws" {
+  region = "us-east-1"
+}
+
+locals {
+  env = "dev"
+}
+resource "aws_vpc" "my_vpc" {
+  cidr_block = "10.0.0.0/16"
+  tags = {
+    Name = "${local.env}-vpc"
+  }
+}
+resource "aws_subnet" "my_subnet"{
+  cidr_block = "10.0.0.0/24"
+  vpc_id = aws_vpc.my_vpc.id
+  availability_zone = "us-east-1b"
+  tags = {
+    Name = "${local.env}-subnet"
+  }
+}
+resource "aws_instance" "my_instance" {
+subnet_id = aws_subnet.my_subnet.id
+ami = "ami-0a232144cf20a27a5"
+instance_type = "t3a.micro"
+tags = {
+  Name = "${local.env}-server"
+}
+}
+
+output "my_output" {
+  value = aws_instance.my_instance.public_ip
+}
+
+---------------- TERRAFORM WORKSPACE ----------
+
+1) It's a place where we write our code.
+2) It is used to isloate the resources.
+3) Changes in one workspace will not effect to other workspace
+4) All the commands will work on workspace only.
+5) In Live environment we create diff workspaces for diff envs.
+6) No need to write multiple configuration files, just change the values
+
+Workspace Commands:
+
+terraform workspace list	            #show list of workspace
+terraform workspace new dev	          #Create and switch to workspace "dev"
+terraform workspace show	            #Show current workspace
+terraform workspace select test	      #Switch blw workspaces
+terraform workspace delete test	      #Delete the workspaces
+
+Key-Point:
+
+1) We cant delete current workspace.
+2) Before deleting workspace we need to delete resources on it.
+3) We cant delete dafault workspace
+
+vim main.tf 
+
+provider "aws" {
+  region = "us-east-1"
+}
+
+locals {
+  env = "${terraform.workspace}"
+}
+resource "aws_vpc" "my_vpc" {
+  cidr_block = "10.0.0.0/16"
+  tags = {
+    Name = "${local.env}-vpc"
+  }
+}
+resource "aws_subnet" "my_subnet"{
+  cidr_block = "10.0.0.0/24"
+  vpc_id = aws_vpc.my_vpc.id
+  availability_zone = "us-east-1b"
+  tags = {
+    Name = "${local.env}-subnet"
+  }
+}
+resource "aws_instance" "my_instance" {
+subnet_id = aws_subnet.my_subnet.id
+ami = "ami-0a232144cf20a27a5"
+instance_type = "t3a.micro"
+tags = {
+  Name = "${local.env}-server"
+}
+}
+
+output "my_output" {
+  value = aws_instance.my_instance.public_ip
+}
