@@ -408,15 +408,16 @@ resource "aws_instance" "us_server" {
 
 provider "aws" {
   region = "ap-south-1"
-  alias = "mumbai"
+  alias = "mumbai"          // make alias
 }
 
 resource "aws_instance" "mumbai_server" {
-  provider = aws.mumbai
+  provider = aws.mumbai                   // pass the alias
   ami = "ami-0861f4e788f5069dd"
   instance_type = "t3a.micro"
   tags = {
     Name = "mumbai-server"
   }
 }
+
 
