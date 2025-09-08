@@ -250,20 +250,33 @@ resource "aws_instance" "my_instance" {
   }
 }
 
------------------- TERAFORM VERSION CONSTRAINTS -------------------
+------ TERRAFORM VERSION CONTRAINTS -----------
 
-Define to control which version of terraform or provider your configuration use.
+Helps to change the provider version
 
-main.tf 
+vim main.tf
 
 terraform {
   required_providers {
-    random = {
-      source  = "hashicorp/aws"
-      version = "~> 3.6"
+    aws = {
+      source = "hashicorp/aws"
+      version = "6.10.0"
     }
   }
 }
+
+provider "aws" {
+  region = "us-east-1"
+}
+
+terraform init -upgrade
+
+------------- TERRAFORM FARMAT ----------------
+
+Helps to write the terraform code with indentation
+
+terraform fmt
+
 
 ------------------------ TERRAFORM LOCALS -------------------------
 
@@ -365,3 +378,4 @@ tags = {
 output "my_output" {
   value = aws_instance.my_instance.public_ip
 }
+
