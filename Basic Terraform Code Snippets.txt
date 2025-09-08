@@ -379,3 +379,44 @@ output "my_output" {
   value = aws_instance.my_instance.public_ip
 }
 
+---------------- TERRAFORM GRAPH -----------------
+
+Used to show the flow chart of our infra
+
+terraform graph    // show the blueprint of current structure
+
+https://magjac.com/graphviz-visual-editor/
+
+
+------------- TERRAFORM ALIAS & PROVIDERS ----------
+
+Create resources on multiple regions in same file.
+
+vim main.tf
+
+provider "aws" {
+  region = "us-east-1"
+}
+
+resource "aws_instance" "us_server" {
+  ami = "ami-00ca32bbc84273381"
+  instance_type = "t3a.micro"
+  tags = {
+    Name = "test-server"
+  }
+}
+
+provider "aws" {
+  region = "ap-south-1"
+  alias = "mumbai"
+}
+
+resource "aws_instance" "mumbai_server" {
+  provider = aws.mumbai
+  ami = "ami-0861f4e788f5069dd"
+  instance_type = "t3a.micro"
+  tags = {
+    Name = "mumbai-server"
+  }
+}
+
