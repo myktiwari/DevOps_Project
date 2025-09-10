@@ -421,6 +421,8 @@ resource "aws_instance" "mumbai_server" {
 }
 
 ----------- TERRAFORM BACKEND -------------
+Terraform S3 backend is used to store the Terraform state file in an S3 bucket for remote storage, collaboration, locking (with DynamoDB), and backup.
+S3 backend with versioning and DynamoDB locking helps avoid accidental deletion or corruption of the state file and ensures safe collaboration.
 
 Create the bucket :
 
@@ -472,5 +474,19 @@ resource "aws_instance" "my_instance" {
   }
 }
 
+KeyPoint:
+While using new block always , need to run terraform init. Otherwise plugins will not download and give error.
+After removing any resource block from the code run the below command:
 
+Exa:
+Error: Backend initialization required, please run "terraform init"
+Reason: Unsetting the previously set backend "s3"
+
+Solution: terraform init -migrate-state
+
+----- TERRAFORM REFRESH ------
+
+Use-Case: If any cloud resource deleted maanually from console, statefile still has a entry for that resource.
+ 
+terraform refresh    // refresh the state list
 
