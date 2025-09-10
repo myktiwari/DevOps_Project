@@ -420,4 +420,57 @@ resource "aws_instance" "mumbai_server" {
   }
 }
 
+----------- TERRAFORM BACKEND -------------
+
+Create the bucket :
+
+provider "aws" {
+  region = "us-east-1"
+}
+
+resource "aws_s3_bucket" "my_bucket" {
+  bucket = "myktiwaribucket007"
+  region = "us-east-1"
+    tags = {
+    Name = "backend_bucket"
+    Environment = "Test"
+  }
+}
+
+resource "aws_s3_bucket_versioning" "bucket_version" {
+  bucket = aws_s3_bucket.my_bucket.id
+
+  versioning_configuration {
+    status = "Enabled"
+  }
+}
+
+Note: remove the aws_s3_bucket from state list if required.
+      terraform state rm aws_s3_bucket.my_bucket
+
+---
+
+provider "aws" {
+  region = "us-east-1"
+}
+
+terraform {
+  backend "s3" {
+    bucket = "myktiwaribucket007"
+    key = "test/terraform.tfstate"
+    region = "us-east-1"
+  }
+}
+ 
+resource "aws_instance" "my_instance" {
+  ami = "ami-00ca32bbc84273381"
+  instance_type = "t3a.micro"
+  availability_zone = "us-east-1b"
+  tags = {
+    Name = "test-server"
+    Environment = "Test"
+  }
+}
+
+
 
