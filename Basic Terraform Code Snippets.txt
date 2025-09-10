@@ -486,7 +486,23 @@ Solution: terraform init -migrate-state
 
 ----- TERRAFORM REFRESH ------
 
+terraform refresh is used to update the state file by comparing it with the real resources on the cloud
 Use-Case: If any cloud resource deleted maanually from console, statefile still has a entry for that resource.
  
 terraform refresh    // refresh the state list
+
+-------- TERRAFORM LOCAL RESOURCES --------
+
+The local resource provider in Terraform is used to run things locally on the machine where Terraform is executed, instead of provisioning cloud resources.
+When using a new provider, need to initialize the plugins via terraform init.
+
+provider "aws" {
+  region = "us-east-1"
+}
+ 
+resource "local_file" "my_files" {
+  filename = "test.txt"
+  content = "this is local file to test the local provider"
+}
+
 
