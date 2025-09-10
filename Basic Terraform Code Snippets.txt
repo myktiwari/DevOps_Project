@@ -152,7 +152,7 @@ resource "aws_instance" "my_instance" {
     ami = var.ami
     count= var.total_count
     tags = {
-        Name: "${var.tag_name}-${count.index}"
+        Name= "${var.tag_name}-${count.index}"
     }
   }
 
@@ -565,5 +565,80 @@ resource "aws_security_group" "my_security_group" {
    }
 }
  
+--------- TERRAFORM FOR_EACH ----------
 
+Used to create multiple resources from map/set, instead to write the same code again and again.
 
+Que: How to create multiple servers on a single file?
+
+#Option 1: Using for_each
+
+provider "aws" {
+  region = "us-east-1"
+}
+
+resource "aws_instance" "my_instance" {
+  ami = var.ami
+  availability_zone = var.zone
+  for_each = var.instance_type
+  instance_type = each.key
+  tags = {
+    Name = "${var.name}-${each.key}"
+  }
+}
+
+variable "ami" {
+  type = string
+  default = "ami-00ca32bbc84273381"
+}
+variable "instance_type" {
+  type = set(string)
+  default = [ "t3a.micro", "t3a.small", "t3.medium" ]
+}
+variable "zone" {
+  type = string
+  default = "us-east-1b"
+}
+variable "name" {
+  type = string
+  default = "test"
+}
+
+#Option2: via variables
+
+provider "aws" {
+  region = "us-east-1"
+}
+
+resource "aws_instance" "my_instance" {
+ami = var.ami
+instance_type = var.instance_type[count.index]
+count = length(var.instance_type)
+tags = {
+  Name = var.instance_name[count.index]
+}
+}
+variable "ami" {
+  type = string
+  default = "ami-00ca32bbc84273381"
+}
+variable "instance_type" {
+  type = list(string)
+  default = ["t3a.nano", "t3a.micro", "t3a.small"]
+}
+variable "instance_name" {
+  type = list(string)
+  default = [ "app-server", "web-server", "db-server" ]
+}
+
+--------- Create Github Repository via Terraform -----------
+
+provider "github" {
+  token = "xxxxxxxxxxxxxvvvvvvAL9cxxxxxxxxxxxxxxxxxxx0"
+}
+
+resource "github_repository" "my_github" {
+  name = "sample-repo-github"
+  description = "this is my github"
+  visibility = "public"
+}
