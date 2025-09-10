@@ -604,7 +604,7 @@ variable "name" {
   default = "test"
 }
 
-#Option2: via variables
+#Option2: via list & count
 
 provider "aws" {
   region = "us-east-1"
@@ -642,3 +642,4 @@ resource "github_repository" "my_github" {
   description = "this is my github"
   visibility = "public"
 }
+
