@@ -643,3 +643,26 @@ resource "github_repository" "my_github" {
   visibility = "public"
 }
 
+----------- .PEM KEY IN TERRAFORM ------------
+
+Generate SSH key on your system
+ssh-keygen -t rsa -b 4096 -f ~/.ssh/prod-key
+
+vim main.tf
+
+resource "aws_key_pair" "prod_key" {
+  key_name   = "prod-key"
+  public_key = file("~/.ssh/prod-key.pub")
+}
+
+resource "aws_instance" "my_instance" {
+  ami           = "ami-0b09ffb6d8b58ca91"
+  instance_type = "t3a.micro"
+  key_name      = aws_key_pair.prod_key.key_name
+}
+
+How to connect?
+ssh -i ~/.ssh/prod-key ec2-user@<EC2_IP>
+
+
+
