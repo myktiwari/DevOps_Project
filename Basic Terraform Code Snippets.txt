@@ -72,6 +72,9 @@ tag_name = "test"
 
 terraform apply -var-file="dev.tfvars"
 
+Note: .tfvars file replace to dev.tfvars , if you create a new prod environemnt named prod.tfvars.
+      This happens because dev and prod were sharing the same state file. Terraform thought it was the same resource and just updated it.
+      To fix it, separate the state files — either with workspaces, separate backends, or separate folders. So dev and prod don’t overwrite each other.
 
 -------------- TERRAFORM CLI -----------------
 
@@ -663,6 +666,7 @@ resource "aws_instance" "my_instance" {
 
 How to connect?
 ssh -i ~/.ssh/prod-key ec2-user@<EC2_IP>
+
 
 
 
