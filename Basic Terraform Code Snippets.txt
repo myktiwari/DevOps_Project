@@ -668,5 +668,98 @@ How to connect?
 ssh -i ~/.ssh/prod-key ec2-user@<EC2_IP>
 
 
+------------------------- TERRAFORM MODULES ----------------------
+
+Folder Structure:-
+project/   (root module)
+├── main.tf                   # calls module
+├── variables.tf              # input vars for root
+├── dev.tfvars                # values for dev
+├── prod.tfvars               # values for prod
+└── modules/                  (child modules live here)
+    └── ec2/                  (child module: EC2)
+        ├── main.tf           # defines resources
+        ├── variables.tf      # input vars for EC2 module
+        └── outputs.tf        # return values
 
 
+1) A module is just a folder that groups Terraform resources.
+2) The root module = your main project folder.
+3) The child module = reusable folder inside modules/ that root calls.
+4) Benefit: Write once, reuse many times (e.g., same EC2 setup for dev, prod).
+
+--> main.tf      #root module
+
+provider "aws" {
+  region = "us-east-1"
+}
+
+module "webserver" {
+  source        = "./modules/ec2"  
+  ami = var.ami
+  instance_type = var.instance_type
+  environment   = var.environment
+  tags = var.tags
+}
+
+--> variable.tf    #root module
+
+variable "ami" {}
+variable "instance_type" {}
+variable "environment" {}
+variable "tags" {}
+
+--> dev.tfvars    #root module
+
+ami = "ami-08982f1c5bf93d976" 
+instance_type = "t3a.micro"
+environment   = "dev"
+tags = "dev"
+
+--> prod.tfvars    #root module
+
+ami = "ami-08982f1c5bf93d976" 
+instance_type = "t3a.small"
+environment   = "prod"
+tags = "prod"
+
+Child Modules --> modules/ec2
+
+--> main.tf
+
+resource "aws_instance" "my_instance" {
+  ami           = var.ami 
+  instance_type = var.instance_type
+
+  tags = {
+    Name = "${var.environment}-web"  
+  }
+}
+
+--> variable.tf
+
+variable "ami" {}
+variable "instance_type" {}
+variable "environment" {}
+variable "tags" {}
+
+--> outputs.tf
+
+output "instance_id" {
+  value = aws_instance.my_instance.id
+}
+
+terraform destroy --var-file=dev.tfvars --auto-approve
+terraform destroy --var-file=prod.tfvars --auto-approve
+
+Note: .tfvars file replace to dev.tfvars , if you create a new prod environemnt named prod.tfvars.
+      This happens because dev and prod were sharing the same state file. Terraform thought it was the same resource and just updated it.
+      To fix it, separate the state files — either with workspaces, separate backends, or separate folders. So dev and prod don’t overwrite each other.
+
+Solution:-
+
+terraform workspace new dev
+terraform destroy --var-file=dev.tfvars --auto-approve
+
+terraform workspace new prod
+terraform destroy --var-file=prod.tfvars --auto-approve
