@@ -763,3 +763,60 @@ terraform destroy --var-file=dev.tfvars --auto-approve
 
 terraform workspace new prod
 terraform destroy --var-file=prod.tfvars --auto-approve
+
+--------------- MAP | SET | LIST -----------------
+
+Map:-
+- A map is like a dictionary → key–value pairs.
+- Keys must be unique.
+
+Usecase:
+Use Map when you need key–value pairs like,
+- Tags
+- Configurations with labels
+- Settings with descriptive keys
+
+variable "tags" {
+  type = map(string)
+}
+tags = {
+  Env   = "dev"
+  Owner = "team1"
+}
+
+List:-
+- A list is an ordered collection (array).
+- Items have indexes: [0], [1], [2]...
+
+Usecase:
+Use List when order matters. You need items in sequence, or you want to access by index ([0], [1]).like,
+- Availability zones
+- Subnets (if you want subnet[0], subnet[1])
+- Steps in a workflow
+
+variable "availability_zone" {
+  type = list(string)
+}
+availability_zone = ["us-east-1a", "us-east-1b", "us-east-1c"]
+
+#Result:-
+availability_zone[0] = us-east-1a
+availability_zone[1] = us-east-1b
+availability_zone[2] = us-east-1c
+
+Set:-
+- A set is like a list but unordered and no duplicates allowed.
+- Terraform automatically removes duplicates.
+
+Usecase:
+You don’t care about order, but you don’t want duplicates. like,
+- Security group IDs
+- Unique tags/identifiers
+- Usernames/roles
+
+variable "sg_ids" {
+  type = set(string)
+}
+sg_ids = ["sg-123", "sg-456", "sg-123"]  
+
+#Result: = ["sg-123", "sg-456"]
