@@ -1,11 +1,18 @@
 Prerequisites:
 --------------
 1) Ubuntu 24.04 LTS - t3a.small (2GB RAM, 2vCore, 15GB EBS)
-2) Install docker & give user permission
+2) Create IAM User with access & secret key
+3) Install docker & give user permission
+    sudo apt-get update
     sudo apt-get install docker.io
     sudo chown $USER /var/run/docker.sock
     docker ps
-
+4) Install aws CLI
+    curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+    sudo apt install unzip
+    unzip awscliv2.zip
+    sudo ./aws/install -i /usr/local/aws-cli -b /usr/local/bin --update
+    aws configure
 
 STEPS:
 -------
@@ -18,7 +25,7 @@ Write the Dockerfile for frontend & backend application & create image from it.
 -------------------------------------------------------------------------------
 cd Application-Code/frontend/
 vim Dockerfile
-  FROM node:14
+  FROM node:14                      //pick the stable version
   WORKDIR /usr/src/app
   COPY package*.json ./
   RUN npm install
@@ -39,6 +46,12 @@ vim Dockerfile
 
 docker build -t three-tier-backend .     // // create the docker image of backend app
 
-Push the image on AWS ECR
---------------------------
+Push the frontend & backend images on AWS ECR (Elastic Container Registry)
+--------------------------------------------------------------------------
+Amazon ECR --> Private registry --> Repositories --> Create repositories --> 
+three-tier-frontend --> View push commands --> (follow the instructions for token & authentication)
+--> run the given command on server
 
+Amazon ECR --> Private registry --> Repositories --> Create repositories --> 
+three-tier-backend --> View push commands --> (follow the instructions for token & authentication)
+--> run the given command on server
