@@ -1,4 +1,27 @@
 Prerequisites:
 --------------
-Ubuntu 24.04 LTS - t3a.small (2GB RAM, 2vCore, 15GB EBS)
+1) Ubuntu 24.04 LTS - t3a.small (2GB RAM, 2vCore, 15GB EBS)
+2) Install docker & give user permission
+    sudo apt-get install docker.io
+    sudo chown $USER /var/run/docker.sock
+    docker ps
+
+
+STEPS:
+-------
+git clone https://github.com/myktiwari/TWSThreeTierAppChallenge.git
+
+cd TWSThreeTierAppChallenge
+Application-Code  Jenkins-Pipeline-Code  Jenkins-Server-TF  Kubernetes-Manifests-file  README.md  assets
+
+Create the Dockerfile for frontend & backend application
+--------------------------------------------
+cd Application-Code/frontend/
+vim Dockerfile
+  FROM node:14
+  WORKDIR /usr/src/app
+  COPY package*.json ./
+  RUN npm install
+  COPY . .
+  CMD [ "npm", "start" ]
 
