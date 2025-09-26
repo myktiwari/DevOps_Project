@@ -59,11 +59,11 @@ Push the frontend & backend images on AWS ECR (Elastic Container Registry)
 --------------------------------------------------------------------------
 Amazon ECR --> Private registry --> Repositories --> Create repositories --> 
 three-tier-frontend --> View push commands --> (follow the instructions for token & authentication)
---> run the given command on server
+--> run the given command on server --> 637423316971.dkr.ecr.us-east-1.amazonaws.com/three-tier-frontend
 
 Amazon ECR --> Private registry --> Repositories --> Create repositories --> 
 three-tier-backend --> View push commands --> (follow the instructions for token & authentication)
---> run the given command on server
+--> run the given command on server --> 637423316971.dkr.ecr.us-east-1.amazonaws.com/three-tier-backend
 
 Install Kubectl & eksctl*** (kubectl used to control the k8s clusters while eksctl used to create the k8s cluster on EKS)
     curl -o kubectl https://amazon-eks.s3.us-west-2.amazonaws.com/1.19.6/2021-01-05/bin/linux/amd64/kubectl
