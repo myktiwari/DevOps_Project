@@ -11,11 +11,11 @@ STEPS:
 -------
 git clone https://github.com/myktiwari/TWSThreeTierAppChallenge.git
 
-cd TWSThreeTierAppChallenge
+cd TWSThreeTierAppChallenge/
 Application-Code  Jenkins-Pipeline-Code  Jenkins-Server-TF  Kubernetes-Manifests-file  README.md  assets
 
-Create the Dockerfile for frontend & backend application
---------------------------------------------
+Write the Dockerfile for frontend & backend application & create image from it.
+-------------------------------------------------------------------------------
 cd Application-Code/frontend/
 vim Dockerfile
   FROM node:14
@@ -24,4 +24,21 @@ vim Dockerfile
   RUN npm install
   COPY . .
   CMD [ "npm", "start" ]
+
+docker build -t  three-tier-frontend .     // create the docker image of frontend app
+docker run -itd --name frontend-app -p 3000:3000 three-tier-frontend:latest       // (Optional) test the application created from image on browser <ip>:3000
+
+cd Application-Code/backend/
+vim Dockerfile
+    FROM node:14
+    WORKDIR /usr/src/app
+    COPY package*.json ./
+    RUN npm install
+    COPY . .
+    CMD ["node", "index.js"]
+
+docker build -t three-tier-backend .     // // create the docker image of backend app
+
+Push the image on AWS ECR
+--------------------------
 
