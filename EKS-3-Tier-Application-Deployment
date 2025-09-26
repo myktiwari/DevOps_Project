@@ -46,7 +46,7 @@ vim Dockerfile
     COPY . .
     CMD ["node", "index.js"]
 
-docker build -t three-tier-backend .     // // create the docker image of backend app
+    docker build -t three-tier-backend .     // // create the docker image of backend app
 
 Install AWS CLI & configure for access & secret key***
     curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
@@ -65,7 +65,7 @@ Amazon ECR --> Private registry --> Repositories --> Create repositories -->
 three-tier-backend --> View push commands --> (follow the instructions for token & authentication)
 --> run the given command on server
 
-Install Kubectl & eksctl***
+Install Kubectl & eksctl*** (kubectl used to control the k8s clusters while eksctl used to create the k8s cluster on EKS)
     curl -o kubectl https://amazon-eks.s3.us-west-2.amazonaws.com/1.19.6/2021-01-05/bin/linux/amd64/kubectl
     chmod +x ./kubectl
     sudo mv ./kubectl /usr/local/bin
@@ -74,6 +74,5 @@ Install Kubectl & eksctl***
     curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
     sudo mv /tmp/eksctl /usr/local/bin
     eksctl version
-
 
 
