@@ -14,6 +14,7 @@ Prerequisites & Overviews:***
     -   Install helm chart
     -   Deploy AWS Load Balancer Controller
 11) Create Ingress for routing
+12) Create entry in domain provider for given domain
     
 
 STEPS:--
@@ -298,6 +299,6 @@ vim ingress.yml
     kubectl logs <mongo-db-pods-id>                                          // check the database entry
 
 Delete the EKS Cluster***
-    eksctl delete cluster --name three-tier-cluster --region us-west-2
+    eksctl delete cluster --name three-tier-cluster --region us-east-1
 
 
