@@ -293,6 +293,11 @@ vim ingress.yml
                     port: 
                       number: 3000                                       // frontend service running on 3000
           
+    kubectl apply -f ingress.yml
+    kubectl get ing -n three-tier
+    kubectl logs <mongo-db-pods-id>                                          // check the database entry
 
+Delete the EKS Cluster***
+    eksctl delete cluster --name three-tier-cluster --region us-west-2
 
 
