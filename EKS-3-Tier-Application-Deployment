@@ -9,6 +9,11 @@ Prerequisites & Overviews:***
 7) Menifest the Mongo Database
 8) Menifest the Backend Application
 9) Menifest the Frontend Application
+10) Create Ingress Controller via helm chart (k8s package manager)
+    -   Install AWS Load Balancer 
+    -   Install helm chart
+    -   Deploy AWS Load Balancer Controller
+11) Create Ingress for routing
     
 
 STEPS:--
@@ -232,6 +237,62 @@ vim service.yml
       type: ClusterIP
       selector:
         role: frontend
+
+    kubectl apply -f deployment.yml
+    kubectl apply -f service.yml
+    kubectl get pods -n three-tier
+    
+Create Ingress Controller via helm chart***
+
+Install AWS Load Balancer   (work: on EKS cluster level)
+    curl -O https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/v2.5.4/docs/install/iam_policy.json
+    aws iam create-policy --policy-name AWSLoadBalancerControllerIAMPolicy --policy-document file://iam_policy.json
+    eksctl utils associate-iam-oidc-provider --region=us-east-1 --cluster=three-tier-cluster --approve
+    eksctl create iamserviceaccount --cluster=three-tier-cluster --namespace=kube-system --name=aws-load-balancer-controller --role-name AmazonEKSLoadBalancerControllerRole --attach-policy-arn=arn:aws:iam::6260*****0565:policy/AWSLoadBalancerControllerIAMPolicy --approve --region=us-east-1
+
+Deploy AWS Load Balancer Controller   (work: within EKS cluster)
+    sudo snap install helm --classic
+    helm repo add eks https://aws.github.io/eks-charts
+    helm repo update eks
+    helm repo list                                                                                  // help repository listing
+    helm install aws-load-balancer-controller eks/aws-load-balancer-controller -n kube-system --set clusterName=three-tier-cluster --set serviceAccount.create=false --set serviceAccount.name=aws-load-balancer-controller
+    kubectl get deployment -n kube-system aws-load-balancer-controller
+    kubectl apply -f full_stack_lb.yaml
+
+Create Ingress for routing***
+
+cd Kubernetes-Manifests-file/ingress.yaml
+vim ingress.yml
+    apiVersion: networking.k8s.io/v1
+    kind: Ingress
+    metadata:
+      name: mainlb
+      namespace: three-tier
+      annotations:
+        alb.ingress.kubernetes.io/scheme: internet-facing
+        alb.ingress.kubernetes.io/target-type: ip
+        alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}]'
+    spec:
+      ingressClassName: alb                                              // ingress class alb
+      rules:
+        - host: backend.atharvs.in                                       // application front url
+          http:
+            paths:
+              - path: /api
+                pathType: Prefix
+                backend:
+                  service:
+                    name: api
+                    port:   
+                      number: 3500                                       // backend service running on 3500
+              - path: /
+                pathType: Prefix
+                backend:
+                  service:
+                    name: frontend
+                    port: 
+                      number: 3000                                       // frontend service running on 3000
+          
 
 
 
