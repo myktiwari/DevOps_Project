@@ -7,7 +7,8 @@ Prerequisites & Overviews:***
 5) Install Kubectl & eksctl
 6) Setup EKS Cluster
 7) Menifest the Mongo Database
-8) Menifest the Backend application
+8) Menifest the Backend Application
+9) Menifest the Frontend Application
     
 
 STEPS:--
@@ -98,8 +99,8 @@ Que: What is the headless service?
 Ans: ClusterIP
 
 Menifest the Backend application***
-    cd Kubernetes-Manifests-file/Backend
 
+cd Kubernetes-Manifests-file/Backend
 vim deployment.yaml
     apiVersion: apps/v1
     kind: Deployment
@@ -128,7 +129,7 @@ vim deployment.yaml
           - name: ecr-registry-secret
           containers:
           - name: api
-            image: 407622020962.dkr.ecr.us-east-1.amazonaws.com/backend:latest             // change the repo link your own
+            image: 40762****962.dkr.ecr.us-east-1.amazonaws.com/backend:latest             // change the backend repo link your own
             imagePullPolicy: Always
             env:
               - name: MONGO_CONN_STR
@@ -173,17 +174,64 @@ vim service.yml
       selector:
         role: api
 
-kubectl apply -f deployment.yml
-kubectl apply -f service.yml
-kubectl get pods -n three-tier
-kubectl get deploy, svc -n three-tier
-kubectl logs <pod_id>                           // check the connectivity with mongodb
+    kubectl apply -f deployment.yml
+    kubectl apply -f service.yml
+    kubectl get pods -n three-tier
+    kubectl get deploy, svc -n three-tier
+    kubectl logs <pod_id>                                                                 // check the connectivity with mongodb
 
+Menifest the Frontend Application***
 
+cd Kubernetes-Manifests-file/Frontend
+vim deployment.yaml
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      name: frontend
+      namespace: three-tier
+      labels:
+        role: frontend
+        env: demo
+    spec: 
+      replicas: 1
+      strategy:
+        type: RollingUpdate
+        rollingUpdate:
+          maxSurge: 1
+          maxUnavailable: 25%
+      selector:
+        matchLabels: 
+          role: frontend
+      template:
+        metadata:
+          labels:
+            role: frontend
+        spec: 
+          imagePullSecrets:
+          - name: ecr-registry-secret
+          containers:
+          - name: frontend
+            image: 4076****0962.dkr.ecr.us-east-1.amazonaws.com/frontend:latest                      // change the frontend repo link your own
+            imagePullPolicy: Always
+            env:
+              - name: REACT_APP_BACKEND_URL
+                value: "http://backend.atharvs.in/api/tasks"                                         // change the registerd url your own  
+            ports:
+            - containerPort: 3000                                                                    // by default react js work on port 3000
 
-
-
-
+vim service.yml
+    apiVersion: v1
+    kind: Service
+    metadata: 
+      name: frontend
+      namespace: three-tier
+    spec:
+      ports:
+      - port: 3000                                                                                    // by default react js work on port 3000
+        protocol: TCP
+      type: ClusterIP
+      selector:
+        role: frontend
 
 
 
