@@ -1,10 +1,13 @@
-Prerequisites:***
+Prerequisites & Overviews:***
 --------------
 1) Ubuntu 24.04 LTS - t3a.small (2GB RAM, 2vCore, 15GB EBS)
-2) Create IAM User with access & secret key
+2) Create IAM CLI User with access & secret key
 3) Install docker & give user permission
 4) Install aws CLI
 5) Install Kubectl & eksctl
+6) Setup EKS Cluster
+7) Menifest the Mongo Database
+8) Menifest the Backend application
     
 
 STEPS:--
@@ -57,13 +60,13 @@ Install AWS CLI & configure for access & secret key***
 
 Push the frontend & backend images on AWS ECR (Elastic Container Registry)
 --------------------------------------------------------------------------
-Amazon ECR --> Private registry --> Repositories --> Create repositories --> 
+Amazon ECR --> Private registry --> Repositories --> Create repositories -->                               // can be create in public repo
 three-tier-frontend --> View push commands --> (follow the instructions for token & authentication)
---> run the given command on server --> 637423316971.dkr.ecr.us-east-1.amazonaws.com/three-tier-frontend
+Repo link--> 637****971.dkr.ecr.us-east-1.amazonaws.com/three-tier-frontend
 
-Amazon ECR --> Private registry --> Repositories --> Create repositories --> 
+Amazon ECR --> Private registry --> Repositories --> Create repositories -->                               // can be create in public repo
 three-tier-backend --> View push commands --> (follow the instructions for token & authentication)
---> run the given command on server --> 637423316971.dkr.ecr.us-east-1.amazonaws.com/three-tier-backend
+Repo link --> 637****971.dkr.ecr.us-east-1.amazonaws.com/three-tier-backend
 
 Install Kubectl & eksctl*** (kubectl used to control the k8s clusters while eksctl used to create the k8s cluster on EKS)
     curl -o kubectl https://amazon-eks.s3.us-west-2.amazonaws.com/1.19.6/2021-01-05/bin/linux/amd64/kubectl
@@ -74,5 +77,113 @@ Install Kubectl & eksctl*** (kubectl used to control the k8s clusters while eksc
     curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
     sudo mv /tmp/eksctl /usr/local/bin
     eksctl version
+
+Setup EKS Cluster***
+    eksctl create cluster --name three-tier-cluster --region us-east-1 --node-type t3a.small --nodes-min 2 --nodes-max 2
+    aws eks update-kubeconfig --region us-east-1 --name three-tier-cluster
+    kubectl get nodes
+
+Menifest the Mongo Database***
+    cd TWSThreeTierAppChallenge/Kubernetes-Manifests-file/Database/
+
+    kubectl create namespace three-tier                              // create the namespace first
+    kubectl apply -f pv.yaml                                         // create the persistante volume
+    kubectl apply -f pvc.yaml                                        // claim the persistante volume
+    kubectl apply -f deployment.yml                                  // create the deployment (pods)
+    kubectl apply -f secrets.yml                                     // create the mongodb secrets
+    kubectl apply -f service.yml                                     // create the mongodb service
+
+## Now mongodb is ready to communicate with Frontend & Backend services
+Que: What is the headless service?
+Ans: ClusterIP
+
+Menifest the Backend application***
+    cd Kubernetes-Manifests-file/Backend
+
+vim deployment.yaml
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata: 
+      name: api
+      namespace: three-tier
+      labels: 
+        role: api
+        env: demo
+    spec: 
+      replicas: 2
+      strategy: 
+        type: RollingUpdate
+        rollingUpdate:
+          maxSurge: 1
+          maxUnavailable: 25%
+      selector: 
+        matchLabels:
+          role: api
+      template:
+        metadata:
+          labels:
+            role: api
+        spec:
+          imagePullSecrets:
+          - name: ecr-registry-secret
+          containers:
+          - name: api
+            image: 407622020962.dkr.ecr.us-east-1.amazonaws.com/backend:latest             // change the repo link your own
+            imagePullPolicy: Always
+            env:
+              - name: MONGO_CONN_STR
+                value: mongodb://mongodb-svc:27017/todo?directConnection=true             // match the mongodb service name as per link 
+              - name: MONGO_USERNAME
+                valueFrom:
+                  secretKeyRef:
+                    name: mongo-sec                                                       // match the mongodb secrets name
+                    key: username
+              - name: MONGO_PASSWORD
+                valueFrom:
+                  secretKeyRef:
+                    name: mongo-sec
+                    key: password
+            ports:
+            - containerPort: 3500                                                         // check the backend application port from index.js file
+            livenessProbe: 
+              httpGet:
+                path: /ok
+                port: 3500
+              initialDelaySeconds: 2
+              periodSeconds: 5
+            readinessProbe:
+              httpGet:
+                path: /ok
+                port: 3500
+              initialDelaySeconds: 5
+              periodSeconds: 5
+              successThreshold: 1
+
+vim service.yml
+    apiVersion: v1
+    kind: Service
+    metadata:
+      name: api
+      namespace: three-tier
+    spec: 
+      ports:
+      - port: 3500
+        protocol: TCP
+      type: ClusterIP
+      selector:
+        role: api
+
+kubectl apply -f deployment.yml
+kubectl apply -f service.yml
+kubectl get pods -n three-tier
+kubectl get deploy, svc -n three-tier
+kubectl logs <pod_id>                           // check the connectivity with mongodb
+
+
+
+
+
+
+
 
 
