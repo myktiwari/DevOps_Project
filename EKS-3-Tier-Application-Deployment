@@ -1,6 +1,6 @@
-Prerequisites & Overviews:***
+Overview:***
 --------------
-1) Ubuntu 24.04 LTS - t3a.small (2GB RAM, 2vCore, 15GB EBS)
+1) Ubuntu 24.04 LTS - t3a.medium (4GB RAM, 2vCore, 15GB EBS)
 2) Create IAM CLI User with access & secret key
 3) Install docker & give user permission
 4) Install aws CLI
@@ -15,11 +15,12 @@ Prerequisites & Overviews:***
     -   Deploy AWS Load Balancer Controller
 11) Create Ingress for routing
 12) Create entry in domain provider for given domain
+13) Delete the cluster (Optional)
     
 
 STEPS:--
 -------
-Install docker & give user permission
+1) Install docker & give user permission
     sudo apt-get update
     sudo apt-get install docker.io
     sudo chown $USER /var/run/docker.sock
@@ -33,8 +34,8 @@ Project Folder
 cd TWSThreeTierAppChallenge/
 Application-Code  Jenkins-Pipeline-Code  Jenkins-Server-TF  Kubernetes-Manifests-file  README.md  assets
 
-Write the Dockerfile for frontend & backend application & create image from it.
--------------------------------------------------------------------------------
+2) Write the Dockerfile for frontend & backend application & create image from it.
+
 cd Application-Code/frontend/
 vim Dockerfile
   FROM node:14                      //pick the stable version
@@ -58,15 +59,15 @@ vim Dockerfile
 
     docker build -t three-tier-backend .     // // create the docker image of backend app
 
-Install AWS CLI & configure for access & secret key***
+3) Install AWS CLI & configure for access & secret key***
     curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
     sudo apt install unzip
     unzip awscliv2.zip
     sudo ./aws/install -i /usr/local/aws-cli -b /usr/local/bin --update
     aws configure
 
-Push the frontend & backend images on AWS ECR (Elastic Container Registry)
---------------------------------------------------------------------------
+4) Push the frontend & backend images on AWS ECR (Elastic Container Registry)
+
 Amazon ECR --> Private registry --> Repositories --> Create repositories -->                               // can be create in public repo
 three-tier-frontend --> View push commands --> (follow the instructions for token & authentication)
 Repo link--> 637****971.dkr.ecr.us-east-1.amazonaws.com/three-tier-frontend
@@ -75,7 +76,7 @@ Amazon ECR --> Private registry --> Repositories --> Create repositories -->    
 three-tier-backend --> View push commands --> (follow the instructions for token & authentication)
 Repo link --> 637****971.dkr.ecr.us-east-1.amazonaws.com/three-tier-backend
 
-Install Kubectl & eksctl*** (kubectl used to control the k8s clusters while eksctl used to create the k8s cluster on EKS)
+5) Install Kubectl & eksctl*** (kubectl used to control the k8s clusters while eksctl used to create the k8s cluster on EKS)
     curl -o kubectl https://amazon-eks.s3.us-west-2.amazonaws.com/1.19.6/2021-01-05/bin/linux/amd64/kubectl
     chmod +x ./kubectl
     sudo mv ./kubectl /usr/local/bin
@@ -85,12 +86,12 @@ Install Kubectl & eksctl*** (kubectl used to control the k8s clusters while eksc
     sudo mv /tmp/eksctl /usr/local/bin
     eksctl version
 
-Setup EKS Cluster***
+6) Setup EKS Cluster***
     eksctl create cluster --name three-tier-cluster --region us-east-1 --node-type t3a.small --nodes-min 2 --nodes-max 2
     aws eks update-kubeconfig --region us-east-1 --name three-tier-cluster
     kubectl get nodes
 
-Menifest the Mongo Database***
+7) Menifest the Mongo Database***
     cd TWSThreeTierAppChallenge/Kubernetes-Manifests-file/Database/
 
     kubectl create namespace three-tier                              // create the namespace first
@@ -100,11 +101,11 @@ Menifest the Mongo Database***
     kubectl apply -f secrets.yml                                     // create the mongodb secrets
     kubectl apply -f service.yml                                     // create the mongodb service
 
-## Now mongodb is ready to communicate with Frontend & Backend services
-Que: What is the headless service?
-Ans: ClusterIP
+    ## Now mongodb is ready to communicate with Frontend & Backend services
+    Que: What is the headless service?
+    Ans: ClusterIP
 
-Menifest the Backend application***
+8) Menifest the Backend application***
 
 cd Kubernetes-Manifests-file/Backend
 vim deployment.yaml
@@ -186,7 +187,7 @@ vim service.yml
     kubectl get deploy, svc -n three-tier
     kubectl logs <pod_id>                                                                 // check the connectivity with mongodb
 
-Menifest the Frontend Application***
+9) Menifest the Frontend Application***
 
 cd Kubernetes-Manifests-file/Frontend
 vim deployment.yaml
@@ -243,15 +244,15 @@ vim service.yml
     kubectl apply -f service.yml
     kubectl get pods -n three-tier
     
-Create Ingress Controller via helm chart***
+10) Create Ingress Controller via helm chart***
 
-Install AWS Load Balancer   (work: on EKS cluster level)
+i) Install AWS Load Balancer   (work: on EKS cluster level)
     curl -O https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/v2.5.4/docs/install/iam_policy.json
     aws iam create-policy --policy-name AWSLoadBalancerControllerIAMPolicy --policy-document file://iam_policy.json
     eksctl utils associate-iam-oidc-provider --region=us-east-1 --cluster=three-tier-cluster --approve
     eksctl create iamserviceaccount --cluster=three-tier-cluster --namespace=kube-system --name=aws-load-balancer-controller --role-name AmazonEKSLoadBalancerControllerRole --attach-policy-arn=arn:aws:iam::6260*****0565:policy/AWSLoadBalancerControllerIAMPolicy --approve --region=us-east-1
 
-Deploy AWS Load Balancer Controller   (work: within EKS cluster)
+ii) Deploy AWS Load Balancer Controller   (work: within EKS cluster)
     sudo snap install helm --classic
     helm repo add eks https://aws.github.io/eks-charts
     helm repo update eks
@@ -260,7 +261,7 @@ Deploy AWS Load Balancer Controller   (work: within EKS cluster)
     kubectl get deployment -n kube-system aws-load-balancer-controller
     kubectl apply -f full_stack_lb.yaml
 
-Create Ingress for routing***
+iii) Create Ingress for routing***
 
 cd Kubernetes-Manifests-file/ingress.yaml
 vim ingress.yml
@@ -298,7 +299,7 @@ vim ingress.yml
     kubectl get ing -n three-tier
     kubectl logs <mongo-db-pods-id>                                          // check the database entry
 
-Delete the EKS Cluster***
+11) Delete the EKS Cluster*** (Optional)
     eksctl delete cluster --name three-tier-cluster --region us-east-1
 
 
