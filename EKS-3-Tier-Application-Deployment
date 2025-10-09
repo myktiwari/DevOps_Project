@@ -89,8 +89,8 @@ Repo link --> 637****971.dkr.ecr.us-east-1.amazonaws.com/three-tier-backend
     Note: kubectl used to control the k8s clusters while eksctl used to create the k8s cluster on EKS
 
 6) Setup EKS Cluster***
-    eksctl create cluster --name three-tier-cluster --region us-east-1 --node-type t3a.small --nodes-min 2 --nodes-max 2
-    aws eks update-kubeconfig --region us-east-1 --name three-tier-cluster
+    eksctl create cluster --name three-tier-cluster --region us-east-1 --node-type t3a.small --nodes-min 2 --nodes-max 2     // creates a new EKS cluster using the eksctl tool
+    aws eks update-kubeconfig --region us-east-1 --name three-tier-cluster                                                   // configures your local kubectl to connect to the newly created EKS cluster.
     kubectl get nodes
 
 7) Menifest the Mongo Database***
