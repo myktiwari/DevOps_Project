@@ -296,7 +296,7 @@ vim ingress.yml
                     name: frontend
                     port: 
                       number: 3000                                       // frontend service running on 3000
-          
+
     kubectl apply -f ingress.yml
     kubectl get ing -n three-tier
     kubectl logs <mongo-db-pods-id>                                          // check the database entry
