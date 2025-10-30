@@ -820,3 +820,33 @@ variable "sg_ids" {
 sg_ids = ["sg-123", "sg-456", "sg-123"]  
 
 #Result: = ["sg-123", "sg-456"]
+
+---------- AWS Resource creation with IAM Role & Instance Profile -------------------
+
+provider "aws" {
+	  region = "us-east-1"
+	}
+	
+	resource "aws_instance" "public_instance" {
+	  ami           = "ami-0360c520857e3138f" 
+	  instance_type = "t3a.small"
+      vpc_security_group_ids = [data.aws_security_group.security_group.id]
+      key_name = data.aws_key_pair.my_key.key_name
+      iam_instance_profile = data.aws_iam_instance_profile.ssm_profile.name
+	  tags = {
+	    Name = "EKS-3-Tier"
+	  }
+	}
+
+    data "aws_security_group" "security_group" {
+        name = "Lab-SG"                                  // existing SG
+    }
+    data "aws_key_pair" "my_key" {
+      key_name = "labkey"                                // existing key
+    }
+	data "aws_iam_role" "my_ssm_role" {
+        name = "AmazonSSMRoleForInstancesQuickSetup"
+    }
+    data "aws_iam_instance_profile" "ssm_profile" {
+      name = "AmazonSSMRoleForInstancesQuickSetup"
+    }
